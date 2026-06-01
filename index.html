@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prato Solidário</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body{
+    background:#ffffff;
+}
+
+header{
+    background:linear-gradient(135deg,#ff4d4d,#ff7a7a);
+    color:white;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 2px 10px rgba(0,0,0,0.2);
+}
+
+header h1{
+    font-size:2.3rem;
+}
+
+header p{
+    margin-top:10px;
+}
+
+.hero{
+    padding:40px 20px;
+    text-align:center;
+}
+
+.btn-localizar{
+    background:#ff4d4d;
+    color:white;
+    border:none;
+    padding:15px 30px;
+    border-radius:30px;
+    font-size:1rem;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn-localizar:hover{
+    background:#e63939;
+}
+
+#status{
+    margin-top:15px;
+    color:#444;
+    font-weight:bold;
+}
+
+#map{
+    height:450px;
+    margin:20px;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+}
+
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+    margin:30px 0;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    border-left:6px solid #ff4d4d;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card h3{
+    color:#ff4d4d;
+    margin-bottom:10px;
+}
+
+.card p{
+    color:#555;
+    line-height:1.5;
+}
+
+footer{
+    margin-top:40px;
+    background:#ff4d4d;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+.badge{
+    background:#ffe5e5;
+    color:#ff4d4d;
+    padding:5px 12px;
+    border-radius:20px;
+    display:inline-block;
+    margin-top:10px;
+    font-size:0.9rem;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🍽️ Prato Solidário</h1>
+    <p>Encontre restaurantes e instituições que oferecem refeições gratuitas próximas a você.</p>
+</header>
+
+<section class="hero">
+    <button class="btn-localizar" onclick="localizarUsuario()">
+        Encontrar locais próximos
+    </button>
+
+    <p id="status"></p>
+</section>
+
+<div id="map"></div>
+
+<div class="container">
+
+    <div class="cards" id="listaLocais">
+
+        <div class="card">
+            <h3>Restaurante Solidário Centro</h3>
+            <p>Distribuição de almoço gratuito de segunda a sexta-feira.</p>
+            <span class="badge">Refeição Gratuita</span>
+        </div>
+
+        <div class="card">
+            <h3>Cozinha Comunitária Esperança</h3>
+            <p>Atendimento para pessoas em situação de vulnerabilidade.</p>
+            <span class="badge">Projeto Social</span>
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    © 2026 Prato Solidário - Alimentação acessível para todos.
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+let mapa = L.map('map').setView([-23.9608, -46.3336], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap'
+}).addTo(mapa);
+
+// Exemplo de restaurantes cadastrados
+const locais = [
+{
+    nome:"Restaurante Solidário Centro",
+    lat:-23.9608,
+    lng:-46.3336,
+    descricao:"Almoço gratuito"
+},
+{
+    nome:"Cozinha Comunitária Esperança",
+    lat:-23.9520,
+    lng:-46.3200,
+    descricao:"Jantar solidário"
+},
+{
+    nome:"Projeto Prato Cheio",
+    lat:-23.9680,
+    lng:-46.3500,
+    descricao:"Café da manhã gratuito"
+}
+];
+
+locais.forEach(local=>{
+    L.marker([local.lat, local.lng])
+    .addTo(mapa)
+    .bindPopup(`
+        <b>${local.nome}</b><br>
+        ${local.descricao}
+    `);
+});
+
+function localizarUsuario(){
+
+    const status = document.getElementById("status");
+
+    if(!navigator.geolocation){
+        status.innerHTML = "Seu navegador não suporta geolocalização.";
+        return;
+    }
+
+    status.innerHTML = "Obtendo localização...";
+
+    navigator.geolocation.getCurrentPosition(
+        (posicao)=>{
+
+            const lat = posicao.coords.latitude;
+            const lng = posicao.coords.longitude;
+
+            status.innerHTML = "Localização encontrada!";
+
+            mapa.setView([lat,lng],14);
+
+            L.marker([lat,lng])
+            .addTo(mapa)
+            .bindPopup("Você está aqui.")
+            .openPopup();
+
+            L.circle([lat,lng],{
+                radius:500,
+                color:"#ff4d4d",
+                fillColor:"#ff7a7a",
+                fillOpacity:0.3
+            }).addTo(mapa);
+
+        },
+        ()=>{
+            status.innerHTML =
+            "Não foi possível obter sua localização.";
+        }
+    );
+}
+
+</script>
+
+</body>
+</html>
